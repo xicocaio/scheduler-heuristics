@@ -5,6 +5,7 @@ import pandas as pd
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
 def run_problems(filename, heur):
     data_file_path = BASE_DIR + '/data/{}'.format(filename)
 
@@ -20,7 +21,7 @@ def run_problems(filename, heur):
 
             # print labels
             if i == 0:
-                print('n={}'.format(n_jobs), end = '\t')
+                print('n={}'.format(n_jobs), end='\t')
                 print(''.join('h = {:<8}'.format(h) for h in h_list))
 
             for _ in range(n_jobs):
@@ -31,8 +32,9 @@ def run_problems(filename, heur):
             print('\nk = {} \t'.format(i + 1), end='')
             for h in h_list:
                 if heur == 'constructive':
-                    cost = h_cons.run(problem, round(h*problem['p'].sum()))
-                    print('{:<12d}'.format(cost), end = '')
+                    cost = h_cons.run(problem, round(h * problem['p'].sum()))
+                    print('{:<12d}'.format(cost), end='')
+
 
 def main(**kwargs):
     heur = 'constructive'
