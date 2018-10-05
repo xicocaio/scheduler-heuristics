@@ -2,6 +2,7 @@ from heuristics import constructive as h_cons
 import sys
 import os.path
 import pandas as pd
+import time
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -30,10 +31,13 @@ def run_problems(filename, heur):
             problem = pd.DataFrame(jobs, columns=['p', 'a', 'b'])
 
             print('\nk = {} \t'.format(i + 1), end='')
+            t = time.process_time()
             for h in h_list:
                 if heur == 'constructive':
                     cost = h_cons.run(problem, round(h * problem['p'].sum()))
                     print('{:<12d}'.format(cost), end='')
+            elapsed_t = time.process_time() - t
+            print('{} ms'.format(1000 * elapsed_t), end='')
 
 
 def main(**kwargs):
