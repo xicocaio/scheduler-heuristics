@@ -150,14 +150,14 @@ def h1(df=None, d=None):
     # eg. a job that has the highest ratio r = 10 p = 10 and b= 1
     # will be placed in the late group farthest to the right of d as possible
     # the next one in order will go after the last one, and so on
-    early_window = d
+    early_time_window = d
     for index, row in ratios.iteritems():
         if index[1] not in early_dict and index[1] not in tardy_dict:
             p = df.iloc[index[1]]['p']
             if index[0] == 'a':
-                if early_window - p > 0:
+                if early_time_window - p > 0:
                     early_dict[index[1]] = int(p)
-                    early_window -= p
+                    early_time_window -= p
             else:
                 tardy_dict[index[1]] = int(p)
 
