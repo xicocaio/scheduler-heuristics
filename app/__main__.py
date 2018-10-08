@@ -34,10 +34,9 @@ def run_problems(filename, heur):
             t = time.process_time()
             for h in h_list:
                 if heur == 'constructive':
-                    cost = h_cons.run(problem, round(h * problem['p'].sum()))
-                    print('{:<12d}'.format(cost), end='')
-            elapsed_t = time.process_time() - t
-            print('{} ms'.format(1000 * elapsed_t), end='')
+                    cost, early_dict, tardy_dict = h_cons.run(problem, round(h * problem['p'].sum()))
+                    elapsed_t = time.process_time() - t
+                    print('{:<12d}'.format(cost, 1000 * elapsed_t), end='')
 
 
 def main(**kwargs):

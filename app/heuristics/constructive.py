@@ -10,7 +10,7 @@ def get_cost(d=None, df=None, early_dict=None, tardy_dict=None):
     start = end = d
     
     # process early jobs
-    for job, p in reversed(list(early_dict.items())):
+    for job, p in early_dict.items():
         a = df.iloc[job]['a']
         early_cost += a * (d - start)
         start -= p
@@ -23,7 +23,7 @@ def get_cost(d=None, df=None, early_dict=None, tardy_dict=None):
     	raise ValueError('Solution is wrong')
 
     # process tardy jobs
-    for job, p in reversed(list(tardy_dict.items())):
+    for job, p in tardy_dict.items():
         b = df.iloc[job]['b']
         end += p
         tardy_cost += b * (end - d)
@@ -161,7 +161,11 @@ def h1(df=None, d=None):
             else:
                 tardy_dict[index[1]] = int(p)
 
-    return get_cost(d, df, early_dict, tardy_dict)
+	# correct the order of thd dicts so they are sequential
+    early_dict = OrderedDict(reversed(list(early_dict.items())))
+    tardy_dict = OrderedDict(reversed(list(tardy_dict.items())))
+
+    return (get_cost(d, df, early_dict, tardy_dict), early_dict, tardy_dict)
 
 
 def run(df=None, d=None):
