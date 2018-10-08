@@ -38,7 +38,7 @@ def run_problems(filename, heur):
             for h in h_list:
                 if heur == 'constructive':
                     t = time.process_time()
-                    cost, early_dict, tardy_dict = h_cons.run(problem, round(h * problem['p'].sum()))
+                    cost, early_dict, tardy_dict = h_cons.run(problem, int(h * problem['p'].sum()))
                     elapsed_t = time.process_time() - t
                     print('{:<12d}'.format(cost), end='')
                     cost_file.write('{};'.format(cost))
