@@ -13,7 +13,7 @@ def run_problems(filename, heur):
     time_results_file_path = BASE_DIR + '/results/{}-time.txt'.format(filename)
 
     h_list = [0.2, 0.4, 0.6, 0.8]
-    # h_list = [0.8]
+    # h_list = [0.2]
 
 
 
@@ -33,12 +33,13 @@ def run_problems(filename, heur):
                 jobs.append([int(e) for e in sch_file.readline().strip().split()])
 
             problem = pd.DataFrame(jobs, columns=['p', 'a', 'b'])
+            total_p = problem['p'].sum()
 
             print('\nk = {} \t'.format(i + 1), end='')
             for h in h_list:
                 if heur == 'constructive':
                     t = time.process_time()
-                    cost, early_dict, tardy_dict = h_cons.run(problem, int(h * problem['p'].sum()))
+                    cost, early_dict, tardy_dict = h_cons.run(problem, int(h * total_p), h)
                     elapsed_t = time.process_time() - t
                     print('{:<12d}'.format(cost), end='')
                     cost_file.write('{};'.format(cost))
