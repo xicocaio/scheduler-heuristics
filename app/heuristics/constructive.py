@@ -235,7 +235,7 @@ def h3(df=None, d=None, h=None):
     for idx, row in ratios.iterrows():
         if idx not in early_dict and idx not in tardy_dict:
             p = row['p']
-            if early_time_window - p > 0:
+            if early_time_window - p >= 0:
                 early_dict[idx] = {'a': row['a'], 'p': p, 'pa': row['pa']}
                 early_time_window -= p
             else:
