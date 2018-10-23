@@ -11,15 +11,15 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 def run_problems(filename, heur):
     data_file_path = BASE_DIR + '/data/{}.txt'.format(filename)
     cost_results_file_path = BASE_DIR + \
-        '/results/{}-costs.txt'.format(filename)
-    time_results_file_path = BASE_DIR + '/results/{}-time.txt'.format(filename)
+        '/results/sch-costs.txt'
+    time_results_file_path = BASE_DIR + '/results/sch-time.txt'
 
     h_list = [0.2, 0.4, 0.6, 0.8]
     # h_list = [0.2]
 
     total_time = time.process_time()
 
-    with open(data_file_path, 'r') as sch_file, open(cost_results_file_path, 'w') as cost_file, open(time_results_file_path, 'w') as time_file:
+    with open(data_file_path, 'r') as sch_file, open(cost_results_file_path, 'a') as cost_file, open(time_results_file_path, 'a') as time_file:
         n_problems = int(sch_file.readline().strip())
 
         for i in range(n_problems):
@@ -53,6 +53,9 @@ def run_problems(filename, heur):
             cost_file.write('\n')
             time_file.write('\n')
 
+        cost_file.write('\n')
+        time_file.write('\n')
+
     elapsed_total_time = time.process_time() - total_time
     print('\n\nproblem time: {:<.2f} ms\n\n'.format(
         1000 * elapsed_total_time), end='')
@@ -71,6 +74,9 @@ def main(**kwargs):
         if k == 'h':
             h = int(v)
 
+    # clear output file before writting
+    open(BASE_DIR + '/results/sch-costs.txt', 'w').close()
+    open(BASE_DIR + '/results/sch-time.txt', 'w').close()
     for f in filenames:
         run_problems(f, heur)
 
