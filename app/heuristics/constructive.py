@@ -43,11 +43,11 @@ def heur(df=None, d=None, h=None):
     early_dict = OrderedDict()
 
     if h > 0.5:
-        ba_diff = 1
+        ba_diff = 1 # best overall = 1
     elif 0.25 < h <= 0.5:
-        ba_diff = 3
+        ba_diff = 3 # best overall = 3
     else:
-        ba_diff = 6
+        ba_diff = 5 # best overall = 5
 
     tardy_dict = df[df['b'] - df['a'] <= ba_diff].to_dict('index')
     ratios = df[df['b'] - df['a'] >
