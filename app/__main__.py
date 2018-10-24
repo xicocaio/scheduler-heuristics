@@ -1,25 +1,26 @@
-from heuristics import constructive as h_cons
+from heuristics import constructive as h_cons, local_search as h_local
 import sys
 import os
 import pandas as pd
 import time
 import numpy as np
+from collections import OrderedDict
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+COST_RESULTS_FILE_PATH = BASE_DIR + '/results/sch-costs.txt'
+TIME_RESULTS_FILE_PATH = BASE_DIR + '/results/sch-time.txt'
+SEQUENCE_RESULTS_FILE_PATH = BASE_DIR + '/results/sch-sequence.txt'
 
 
 def run_problems(filename, heur):
     data_file_path = BASE_DIR + '/data/{}.txt'.format(filename)
-    cost_results_file_path = BASE_DIR + \
-        '/results/sch-costs.txt'
-    time_results_file_path = BASE_DIR + '/results/sch-time.txt'
 
     h_list = [0.2, 0.4, 0.6, 0.8]
     # h_list = [0.2]
 
     total_time = time.process_time()
 
-    with open(data_file_path, 'r') as sch_file, open(cost_results_file_path, 'a') as cost_file, open(time_results_file_path, 'a') as time_file:
+    with open(data_file_path, 'r') as sch_file, open(COST_RESULTS_FILE_PATH, 'a') as cost_file, open(TIME_RESULTS_FILE_PATH, 'a') as time_file, open(SEQUENCE_RESULTS_FILE_PATH, 'a') as sequence_file:
         n_problems = int(sch_file.readline().strip())
 
         for i in range(n_problems):
@@ -42,19 +43,34 @@ def run_problems(filename, heur):
 
             print('\nk = {} \t'.format(i + 1), end='')
             for h in h_list:
+                cost = 0
+                early_dict = OrderedDict()
+                tardy_dict = OrderedDict()
+                d = int(h * total_p)
+
+                t = time.process_time()
                 if heur == 'constructive':
-                    t = time.process_time()
                     cost, early_dict, tardy_dict = h_cons.run(
-                        problem, int(h * total_p), h)
-                    elapsed_t = time.process_time() - t
-                    print('{:<12d}'.format(cost), end='')
-                    cost_file.write('{};'.format(cost))
-                    time_file.write('{0:.2f};'.format(1000 * elapsed_t))
+                        problem, d, h)
+                elif heur == 'local':
+                    cost, early_dict, tardy_dict = h_local.run(
+                        problem, d, h)
+
+                elapsed_t = time.process_time() - t
+
+                print('{:<12d}'.format(cost), end='')
+                cost_file.write('{};'.format(cost))
+                time_file.write('{0:.2f};'.format(1000 * elapsed_t))
+                sequence_file.write('{};{};{}\n'.format(
+                    d, early_dict, tardy_dict))
+
             cost_file.write('\n')
             time_file.write('\n')
+            sequence_file.write('\n')
 
         cost_file.write('\n')
         time_file.write('\n')
+        sequence_file.write('\n')
 
     elapsed_total_time = time.process_time() - total_time
     print('\n\nproblem time: {:<.2f} ms\n\n'.format(
@@ -75,8 +91,9 @@ def main(**kwargs):
             h = int(v)
 
     # clear output file before writting
-    open(BASE_DIR + '/results/sch-costs.txt', 'w').close()
-    open(BASE_DIR + '/results/sch-time.txt', 'w').close()
+    open(COST_RESULTS_FILE_PATH, 'w').close()
+    open(TIME_RESULTS_FILE_PATH, 'w').close()
+    open(SEQUENCE_RESULTS_FILE_PATH, 'w').close()
     for f in filenames:
         run_problems(f, heur)
 

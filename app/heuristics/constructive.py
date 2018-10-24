@@ -50,10 +50,10 @@ def heur(df=None, d=None, h=None):
         if idx not in early_dict and idx not in tardy_dict:
             p = row['p']
             if early_time_window - p >= 0:
-                early_dict[idx] = {'a': row['a'], 'p': p, 'pa': row['pa']}
+                early_dict[idx] = {'a': row['a'], 'b': row['b'], 'p': p, 'pa': row['pa'], 'pb': row['pb']}
                 early_time_window -= p
             else:
-                tardy_dict[idx] = {'b': row['b'], 'p': p, 'pb': row['pb']}
+                tardy_dict[idx] = {'a': row['a'], 'b': row['b'], 'p': p, 'pa': row['pa'], 'pb': row['pb']}
 
     tardy_dict = OrderedDict(
         sorted(tardy_dict.items(), key=lambda x: x[1]['pb']))
