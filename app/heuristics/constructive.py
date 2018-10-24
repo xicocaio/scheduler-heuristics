@@ -3,8 +3,6 @@ import pandas as pd
 from collections import OrderedDict
 import time
 
-# calculates final cost
-
 
 def get_cost(d=None, df=None, early_dict=None, tardy_dict=None):
     early_cost = tardy_cost = 0
@@ -42,16 +40,28 @@ def heur(df=None, d=None, h=None):
     # jobs after d
     early_dict = OrderedDict()
 
+    ratios_pa_ascending = False
+
+    # best for ratios pa descending, for h=0.2, results were better with pa
+    # ascending
     if h > 0.5:
-        ba_diff = 1 # best overall = 1
+        ba_diff = 1  # best overall = 1
     elif 0.25 < h <= 0.5:
-        ba_diff = 3 # best overall = 3
+        ba_diff = 3  # best overall = 3
     else:
-        ba_diff = 5 # best overall = 5
+        ba_diff = 5  # best overall = 5
+
+    # # best for ratios pa ascending
+    # if h > 0.75:
+    #     ba_diff = 1  # best overall = 1
+    # elif 0.5 < h <= 0.75:
+    #     ba_diff = 2  # best overall = 2
+    # else:
+    #     ba_diff = 3  # best overall = 3 for h=0.2 k < 50, else best = 5
 
     tardy_dict = df[df['b'] - df['a'] <= ba_diff].to_dict('index')
     ratios = df[df['b'] - df['a'] >
-                ba_diff].sort_values(['pa'], ascending=False)
+                ba_diff].sort_values(['pa'], ascending=ratios_pa_ascending)
 
     # the idea here is to place the jobs with higher ratio
     # farthest from the center d and in the group that
