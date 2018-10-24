@@ -2,17 +2,17 @@ import numpy as np
 import pandas as pd
 from collections import OrderedDict
 import time
-from  heuristics import utils
+from heuristics import utils
 
 
 def heur(df=None, d=None, h=None):
     # jobs after d
     early_dict = OrderedDict()
 
-    ratios_pa_ascending = False
+    ba_diff_asc = False
 
-    # best for ratios pa descending, for h=0.2, results were better with pa
-    # ascending
+    # best for ba_diff_df descending, for h=0.2, results were better with
+    # ba_diff_df ascending
     if h > 0.5:
         ba_diff = 1  # best overall = 1
     elif 0.25 < h <= 0.5:
@@ -20,7 +20,7 @@ def heur(df=None, d=None, h=None):
     else:
         ba_diff = 5  # best overall = 5
 
-    # # best for ratios pa ascending
+    # # best for ba_diff_df ascending
     # if h > 0.75:
     #     ba_diff = 1  # best overall = 1
     # elif 0.5 < h <= 0.75:
@@ -28,32 +28,23 @@ def heur(df=None, d=None, h=None):
     # else:
     #     ba_diff = 3  # best overall = 3 for h=0.2 k < 50, else best = 5
 
+    # the idea here is to place the jobs with lower ba_diff in tardy group
     tardy_dict = df[df['b'] - df['a'] <= ba_diff].to_dict('index')
-    ratios = df[df['b'] - df['a'] >
-                ba_diff].sort_values(['pa'], ascending=ratios_pa_ascending)
 
-    # the idea here is to place the jobs with higher ratio
-    # farthest from the center d and in the group that
-    # corresponds to that calculated penalty
-    # eg. a job that has the highest ratio r = 10
-    # with p = 10 and a = 1, will be placed in the early group
-    # farthest to the left of d as possible, the next one in order
-    # will go after the last one, and so on
-    # unless there is no space on early group
-    # in this case this job is ignored, and we follow to the next one
-    # eg. a job that has the highest ratio r = 10 p = 10 and b= 1
-    # will be placed in the late group farthest to the right of d as possible
-    # the next one in order will go after the last one, and so on
-    # t = time.process_time()
+    # we then pick the reamining jobs, order them by highest p/a first and, if
+    # they fit, try to place them on early group
+    ba_diff_df = df[df['b'] - df['a'] >
+                    ba_diff].sort_values(['pa'], ascending=ba_diff_asc)
+
     early_time_window = d
-    for idx, row in ratios.iterrows():
+    for idx, row in ba_diff_df.iterrows():
         if idx not in early_dict and idx not in tardy_dict:
             p = row['p']
             if early_time_window - p >= 0:
-                early_dict[idx] = {'a': row['a'], 'b': row['b'], 'p': p, 'pa': row['pa'], 'pb': row['pb']}
+                early_dict[idx] = row.to_dict()
                 early_time_window -= p
             else:
-                tardy_dict[idx] = {'a': row['a'], 'b': row['b'], 'p': p, 'pa': row['pa'], 'pb': row['pb']}
+                tardy_dict[idx] = row.to_dict()
 
     tardy_dict = OrderedDict(
         sorted(tardy_dict.items(), key=lambda x: x[1]['pb']))
