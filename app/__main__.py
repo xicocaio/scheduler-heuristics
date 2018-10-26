@@ -74,7 +74,7 @@ def read_problems(data_file_path):
             df['pa'] = df['p'] / df['a']
             df['pb'] = df['p'] / df['b']
 
-            yield {i: 'i', n_jobs: 'n_jobs', 'df': df}
+            yield {'i': i, 'n_jobs': n_jobs, 'df': df}
 
 
 def read_cons_results(data_file_path):
@@ -89,7 +89,7 @@ def read_cons_results(data_file_path):
                 h, d, start, early_seq, tardy_dict, cost = sch_file.readline().strip().split('|')
                 schedule = Schedule(int(d), int(start), OrderedDict(json.loads(
                     early_seq)), OrderedDict(json.loads(tardy_dict)))
-                result = Result(float(h), schedule, int(cost))
+                result = Result(n_jobs, float(h), schedule, int(cost))
 
                 yield result
 
@@ -101,6 +101,7 @@ def run_problems(input_filename, h_list, heur):
         data_file_path = BASE_DIR + '/data/{}.txt'.format(input_filename)
 
         for problem in read_problems(data_file_path):
+            n_jobs = problem['n_jobs']
             df = problem['df']
             total_p = df['p'].sum()
             result = []
@@ -118,7 +119,7 @@ def run_problems(input_filename, h_list, heur):
 
                 cost = utils.get_cost(schedule)
 
-                result_h = Result(h, schedule, cost, elapsed_t)
+                result_h = Result(n_jobs, h, schedule, cost, elapsed_t)
                 result.append(result_h)
 
             results.append(result)
@@ -139,7 +140,8 @@ def run_problems(input_filename, h_list, heur):
 
             cost = utils.get_cost(schedule)
 
-            result_h = Result(cons_result.h, schedule, cost, elapsed_t)
+            result_h = Result(cons_result.n_jobs, cons_result.h,
+                              schedule, cost, elapsed_t)
 
             result.append(result_h)
 

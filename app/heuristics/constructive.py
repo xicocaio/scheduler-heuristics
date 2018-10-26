@@ -34,8 +34,8 @@ def create_schedule(df=None, d=None, h=None):
 
     # we then pick the reamining jobs, order them by highest p/a first and, if
     # they fit, try to place them on early group
-    ba_diff_dict = df[df['b'] - df['a'] >
-                    ba_diff].sort_values(['pa'], ascending=ba_diff_asc).to_dict(into=OrderedDict, orient='index')
+    ba_diff_dict = df[df['b'] - df['a'] > ba_diff].sort_values(
+        ['pa'], ascending=ba_diff_asc).to_dict(into=OrderedDict, orient='index')
 
     start_time = d
     for idx, row in ba_diff_dict.items():
