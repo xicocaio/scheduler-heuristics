@@ -115,7 +115,7 @@ def run_problems(input_filename, h_list, heur):
                 elapsed_t = time.process_time() - t
 
                 # veryfing if sequence is valid
-                utils_test.sequence_test(df, schedule)
+                utils_test.sequence_test(n_jobs, schedule)
 
                 cost = utils.get_cost(schedule)
 
@@ -134,7 +134,7 @@ def run_problems(input_filename, h_list, heur):
             t = time.process_time()
 
             schedule = heur_local.create_schedule(
-                cons_result.h, cons_result.schedule, cons_result.cost)
+                cons_result.n_jobs, cons_result.schedule, cons_result.cost)
 
             elapsed_t = time.process_time() - t
 
