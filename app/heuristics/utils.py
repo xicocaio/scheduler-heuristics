@@ -15,13 +15,13 @@ def is_valid(n_jobs, schedule=None):
 
     # the first conditions here are redundant because start may be set with wrong values
     if p_sum_early > d or start < 0 or len(early_seq) + len(tardy_seq) != n_jobs or len(dict_intersect) > 0:
-        print('\n')
-        print('p_sum_early > d: {} > {}'.format(p_sum_early, d))
-        print('start < 0: {} < 0'.format(start))
-        print('len(early_seq) + len(tardy_seq) != n_jobs: {} != {}'.format(
-            len(early_seq) + len(tardy_seq), n_jobs))
-        print('len(dict_intersect) > 0: {}'.format(dict_intersect))
-        print('\n')
+        # print('\n')
+        # print('p_sum_early > d: {} > {}'.format(p_sum_early, d))
+        # print('start < 0: {} < 0'.format(start))
+        # print('len(early_seq) + len(tardy_seq) != n_jobs: {} != {}'.format(
+        #     len(early_seq) + len(tardy_seq), n_jobs))
+        # print('len(dict_intersect) > 0: {}'.format(dict_intersect))
+        # print('\n')
 
         return False
 

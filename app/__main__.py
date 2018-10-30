@@ -133,7 +133,7 @@ def run_problems(input_filename, h_list, heur):
         for cons_result in read_cons_results(data_file_path):
             t = time.process_time()
 
-            schedule = heur_local.create_schedule(
+            cost, schedule = heur_local.create_schedule(
                 cons_result.n_jobs, cons_result.schedule, cons_result.cost)
 
             elapsed_t = time.process_time() - t
