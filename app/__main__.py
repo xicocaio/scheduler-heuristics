@@ -1,4 +1,4 @@
-from heuristics import constructive as heur_cons, local_search as heur_local, utils
+from heuristics import constructive as heur_cons, local_search as heur_local, tabu_search as heur_tabu, utils
 import sys
 import os
 import pandas as pd
@@ -124,7 +124,7 @@ def run_problems(input_filename, h_list, heur):
 
             results.append(result)
 
-    if heur == 'local':
+    elif heur == 'local':
         data_file_path = BASE_DIR + \
             '/output/{}-cons-results.txt'.format(input_filename)
         h_list_len = len(h_list)
@@ -148,6 +148,37 @@ def run_problems(input_filename, h_list, heur):
             if len(result) >= h_list_len:
                 results.append(result)
                 result = []
+
+    elif heur == 'tabu':
+        data_file_path = BASE_DIR + \
+            '/output/{}-cons-results.txt'.format(input_filename)
+        h_list_len = len(h_list)
+        result = []
+
+        for cons_result in read_cons_results(data_file_path):
+            t = time.process_time()
+
+            cost, schedule = heur_tabu.create_schedule(
+                cons_result.n_jobs, cons_result.schedule, cons_result.cost)
+
+            elapsed_t = time.process_time() - t
+
+            cost = utils.get_cost(schedule)
+
+            # veryfing if sequence is valid
+            utils_test.sequence_test(cons_result.n_jobs, schedule)
+
+            result_h = Result(cons_result.n_jobs, cons_result.h,
+                              schedule, cost, elapsed_t)
+
+            result.append(result_h)
+
+            if len(result) >= h_list_len:
+                results.append(result)
+                result = []
+
+    else:
+        raise ValueError('Selected Heuristic do not exist')
 
     return results
 
