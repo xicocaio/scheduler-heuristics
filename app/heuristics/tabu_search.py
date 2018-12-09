@@ -8,7 +8,7 @@ from models.schedule import Schedule
 
 # tabu for each number of jobs
 TABU_DURATION = {10: 8, 20: 10, 50: 10, 100: 10, 200: 20, 500: 25, 1000: 50}
-MAX_ITER = {10: 20, 20: 40, 50: 20, 100: 25, 200: 40, 500: 50, 1000: 100}
+MAX_ITER = {10: 20, 20: 40, 50: 20, 100: 25, 200: 40, 500: 50, 1000: 150}
 MAX_COST = sys.maxsize
 
 

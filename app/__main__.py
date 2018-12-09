@@ -8,6 +8,8 @@ from collections import OrderedDict
 from models.result import Result, Schedule
 from tests import utils_test
 import json
+import multiprocessing as mp
+from itertools import repeat
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_NUMBER_OF_PROBLEMS = 10
@@ -94,93 +96,78 @@ def read_cons_results(data_file_path):
                 yield result
 
 
-def run_problems(input_filename, h_list, heur):
+def multiprocessing_func(cons_result, heur):
+    t = time.process_time()
+
+    if heur == 'local':
+        search_func = heur_local.create_schedule
+    elif heur == 'tabu':
+        search_func = heur_tabu.create_schedule
+
+    cost, schedule = search_func(
+        cons_result.n_jobs, cons_result.schedule, cons_result.cost)
+
+    elapsed_t = time.process_time() - t
+
+    cost = utils.get_cost(schedule)
+
+    result_h = Result(cons_result.n_jobs, cons_result.h,
+                      schedule, cost, elapsed_t)
+
+    return result_h
+
+
+def run_problems(input_filename, h_list, heur, processes):
     results = []
 
-    if heur == 'cons':
-        data_file_path = BASE_DIR + '/data/{}.txt'.format(input_filename)
+    with mp.Pool(processes=processes) as pool:
+        if heur == 'cons':
+            data_file_path = BASE_DIR + '/data/{}.txt'.format(input_filename)
 
-        for problem in read_problems(data_file_path):
-            n_jobs = problem['n_jobs']
-            df = problem['df']
-            total_p = df['p'].sum()
+            for problem in read_problems(data_file_path):
+                n_jobs = problem['n_jobs']
+                df = problem['df']
+                total_p = df['p'].sum()
+                result = []
+                for h in h_list:
+                    d = int(h * total_p)
+
+                    t = time.process_time()
+
+                    schedule = heur_cons.create_schedule(df, d, h)
+
+                    elapsed_t = time.process_time() - t
+
+                    # veryfing if sequence is valid
+                    utils_test.sequence_test(n_jobs, schedule)
+
+                    cost = utils.get_cost(schedule)
+
+                    result_h = Result(n_jobs, h, schedule, cost, elapsed_t)
+                    result.append(result_h)
+
+                results.append(result)
+
+        elif heur in ['local', 'tabu']:
+            data_file_path = BASE_DIR + \
+                '/output/{}-cons-results.txt'.format(input_filename)
+            h_list_len = len(h_list)
             result = []
-            for h in h_list:
-                d = int(h * total_p)
 
-                t = time.process_time()
+            result_h = pool.starmap(multiprocessing_func, zip(
+                read_cons_results(data_file_path), repeat(heur)))
 
-                schedule = heur_cons.create_schedule(df, d, h)
+            for e in result_h:
+                result.append(e)
 
-                elapsed_t = time.process_time() - t
+                if len(result) >= h_list_len:
+                    results.append(result)
+                    result = []
 
-                # veryfing if sequence is valid
-                utils_test.sequence_test(n_jobs, schedule)
+        else:
+            raise ValueError('Selected Heuristic do not exist')
 
-                cost = utils.get_cost(schedule)
-
-                result_h = Result(n_jobs, h, schedule, cost, elapsed_t)
-                result.append(result_h)
-
-            results.append(result)
-
-    elif heur == 'local':
-        data_file_path = BASE_DIR + \
-            '/output/{}-cons-results.txt'.format(input_filename)
-        h_list_len = len(h_list)
-        result = []
-
-        for cons_result in read_cons_results(data_file_path):
-            t = time.process_time()
-
-            cost, schedule = heur_local.create_schedule(
-                cons_result.n_jobs, cons_result.schedule, cons_result.cost)
-
-            elapsed_t = time.process_time() - t
-
-            cost = utils.get_cost(schedule)
-
-            result_h = Result(cons_result.n_jobs, cons_result.h,
-                              schedule, cost, elapsed_t)
-
-            result.append(result_h)
-
-            if len(result) >= h_list_len:
-                results.append(result)
-                result = []
-
-    elif heur == 'tabu':
-        data_file_path = BASE_DIR + \
-            '/output/{}-cons-results.txt'.format(input_filename)
-        h_list_len = len(h_list)
-        result = []
-
-        for cons_result in read_cons_results(data_file_path):
-            t = time.process_time()
-
-            cost, schedule = heur_tabu.create_schedule(
-                cons_result.n_jobs, cons_result.schedule, cons_result.cost)
-
-            elapsed_t = time.process_time() - t
-
-            cost = utils.get_cost(schedule)
-
-            # veryfing if sequence is valid
-            utils_test.sequence_test(cons_result.n_jobs, schedule)
-
-            result_h = Result(cons_result.n_jobs, cons_result.h,
-                              schedule, cost, elapsed_t)
-
-            result.append(result_h)
-
-            if len(result) >= h_list_len:
-                results.append(result)
-                result = []
-
-    else:
-        raise ValueError('Selected Heuristic do not exist')
-
-    return results
+        return results
 
 
 def get_out_filepaths(heur):
@@ -202,6 +189,7 @@ def main(**kwargs):
                  'sch100', 'sch200', 'sch500', 'sch1000']
     h_list = [0.2, 0.4, 0.6, 0.8]
     # h_list = [0.2]
+    processes = mp.cpu_count() - 1 # default max number of processes - 1
 
     for k, v in kwargs.items():
         if k == 'heur':
@@ -209,17 +197,19 @@ def main(**kwargs):
         if k == 'filename':
             filenames = [v]
         if k == 'h':
-            h = int(v)
+            h = list(float(v))
+        if k == 'processes':
+            processes = int(v)
 
     clear_out_files(heur)
 
     for filename in filenames:
         n_jobs = int(filename.replace('sch', ''))
-        start_time = time.process_time()
+        start_time = time.time()
 
-        results = run_problems(filename, h_list, heur)
+        results = run_problems(filename, h_list, heur, processes)
 
-        elapsed_total_time = time.process_time() - start_time
+        elapsed_total_time = time.time() - start_time
 
         print_results(n_jobs, h_list, heur, results,
                       elapsed_total_time, filename)
