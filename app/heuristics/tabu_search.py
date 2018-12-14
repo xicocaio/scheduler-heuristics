@@ -7,78 +7,62 @@ from heuristics import utils
 from models.schedule import Schedule
 
 # tabu for each number of jobs
-TABU_DURATION = {10: 8, 20: 10, 50: 10, 100: 10, 200: 20, 500: 25, 1000: 50}
-MAX_ITER = {10: 20, 20: 40, 50: 20, 100: 25, 200: 40, 500: 50, 1000: 150}
+TABU_DURATION = {10: 4, 20: 6, 50: 20, 100: 35, 200: 70, 500: 150, 1000: 350}
+MAX_ITER = {10: 100, 20: 200, 50: 900,
+            100: 2000, 200: 2000, 500: 3000, 1000: 1500}
 MAX_COST = sys.maxsize
 
 
-def get_neighbour_evaluation(opt_cost, best_neighbour_cost, best_neighbour, neighbour, job, tabu_dict, current_turn):
-    neighbour_cost = utils.get_cost(neighbour)
+def get_neighbourhood(previous_schedule):
 
-    # aspiration criteria
-    if neighbour_cost < opt_cost:
-        opt_cost = neighbour_cost
-        return opt_cost, neighbour_cost, neighbour, job
-    else:
-        if neighbour_cost < best_neighbour_cost and (job not in tabu_dict or tabu_dict[job] < current_turn):
-            best_neighbour_cost = neighbour_cost
-            return opt_cost, best_neighbour_cost, neighbour, job
+    neighbourhood = []
 
-    return opt_cost, best_neighbour_cost, best_neighbour, job
+    for inserted_job, job_data in previous_schedule.early_seq.items():
 
-
-def get_neighbourhood(n_jobs, current_turn, opt_cost, cur_cost, cur_schedule, tabu_dict):
-    neighbour = cur_schedule
-    best_neighbour = cur_schedule
-    best_neighbour_cost = MAX_COST
-    cost = MAX_COST
-    selected_job = -1
-
-    for job, value in cur_schedule.early_seq.items():
-
-        neighbour = cur_schedule.move_job(job)
+        schedule = previous_schedule.move_job(inserted_job)
 
         tardy_seq = OrderedDict(
-            sorted(neighbour.tardy_seq.items(), key=lambda x: x[1]['pb']))
-        neighbour.tardy_seq = tardy_seq
+            sorted(schedule.tardy_seq.items(), key=lambda x: x[1]['pb']))
+        schedule.tardy_seq = tardy_seq
+        cost = utils.get_cost(schedule)
+        neighbourhood.append([inserted_job, schedule, cost])
 
-        opt_cost, best_neighbour_cost, best_neighbour, selected_job = get_neighbour_evaluation(
-            opt_cost, best_neighbour_cost, best_neighbour, neighbour, job, tabu_dict, current_turn)
+    for inserted_job, job_data in previous_schedule.tardy_seq.items():
+        if job_data['p'] <= previous_schedule.start:
 
-    for job, value in cur_schedule.tardy_seq.items():
-        if value['p'] <= cur_schedule.start:
-
-            neighbour = cur_schedule.move_job(job)
+            schedule = previous_schedule.move_job(inserted_job)
 
             early_seq = OrderedDict(
-                sorted(neighbour.early_seq.items(), key=lambda x: x[1]['pa']))
-            neighbour.early_seq = early_seq
+                sorted(schedule.early_seq.items(), key=lambda x: x[1]['pa']))
+            schedule.early_seq = early_seq
+            cost = utils.get_cost(schedule)
+            neighbourhood.append([inserted_job, schedule, cost])
 
-            opt_cost, best_neighbour_cost, best_neighbour, selected_job = get_neighbour_evaluation(
-                opt_cost, best_neighbour_cost, best_neighbour, neighbour, job, tabu_dict, current_turn)
-
-    tabu_dict[selected_job] = current_turn + TABU_DURATION[n_jobs]
-
-    return best_neighbour_cost, best_neighbour, tabu_dict
+    # return sorted neighbourhood by cost ascending
+    return sorted(neighbourhood, key=lambda x: x[2])
 
 
-def create_schedule(n_jobs, schedule, cost):
-    iteration = 0
-
-    opt_cost = cost
-    opt_schedule = schedule
+def create_schedule(n_jobs, opt_schedule, opt_cost):
+    cur_cost = opt_cost
+    cur_schedule = opt_schedule
 
     tabu_dict = dict()
 
     k = MAX_ITER[n_jobs]
+    tabu_duration = TABU_DURATION[n_jobs]
 
-    for i in range(k):
-        cost, schedule, tabu_dict = get_neighbourhood(n_jobs, i, opt_cost, cost, schedule, tabu_dict)
-        if cost < opt_cost:
-            opt_cost = cost
-            opt_schedule = schedule
+    for iteration in range(0, k):
+        neighbourhood = get_neighbourhood(cur_schedule)
 
-        # if i == k - 1:
-        #     print('\n\n reached max_k \n\n')
+        for inserted_job, schedule, cost in neighbourhood:
+            if cost < opt_cost:
+                tabu_dict[inserted_job] = iteration + tabu_duration
+                opt_cost, opt_schedule = cost, schedule
+                cur_cost, cur_schedule = cost, schedule
+                break
+            elif inserted_job not in tabu_dict or tabu_dict[inserted_job] < iteration:
+                tabu_dict[inserted_job] = iteration + tabu_duration
+                cur_cost, cur_schedule = cost, schedule
+                break
 
     return opt_cost, opt_schedule

@@ -107,6 +107,8 @@ def multiprocessing_func(cons_result, heur):
     cost, schedule = search_func(
         cons_result.n_jobs, cons_result.schedule, cons_result.cost)
 
+    utils_test.sequence_test(cons_result.n_jobs, schedule)
+
     elapsed_t = time.process_time() - t
 
     cost = utils.get_cost(schedule)
@@ -189,7 +191,7 @@ def main(**kwargs):
                  'sch100', 'sch200', 'sch500', 'sch1000']
     h_list = [0.2, 0.4, 0.6, 0.8]
     # h_list = [0.2]
-    processes = mp.cpu_count() - 1 # default max number of processes - 1
+    processes = mp.cpu_count() - 1  # default max number of processes - 1
 
     for k, v in kwargs.items():
         if k == 'heur':
