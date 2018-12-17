@@ -6,10 +6,14 @@ import sys
 from heuristics import utils
 from models.schedule import Schedule
 
+# parameters for long time running with better results
+# TABU_DURATION = {10: 4, 20: 6, 50: 20, 100: 35, 200: 70, 500: 150, 1000: 350}
+# MAX_ITER = {10: 100, 20: 200, 50: 900,
+#             100: 2000, 200: 2000, 500: 3000, 1000: 1500}
+
 # tabu for each number of jobs
-TABU_DURATION = {10: 4, 20: 6, 50: 20, 100: 35, 200: 70, 500: 150, 1000: 350}
-MAX_ITER = {10: 100, 20: 200, 50: 900,
-            100: 2000, 200: 2000, 500: 3000, 1000: 1500}
+TABU_DURATION = {10: 2, 20: 3, 50: 4, 100: 6, 200: 11, 500: 20, 1000: 50}
+MAX_ITER = {10: 2, 20: 3, 50: 4, 100: 6, 200: 11, 500: 20, 1000: 50}
 MAX_COST = sys.maxsize
 
 

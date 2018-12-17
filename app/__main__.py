@@ -56,8 +56,8 @@ def print_results(n_jobs, h_list, heur, results, elapsed_total_time, filename_pr
         time_file.write('\n')
         results_file.write('\n')
 
-    print('\n\nproblem time: {:<.2f} ms\n\n\n'.format(
-        1000 * elapsed_total_time), end='')
+    print('\n\nproblem time: {:<.2f} ms ({:<.2f}) \n\n\n'.format(
+        1000 * elapsed_total_time, elapsed_total_time / 60), end='')
 
 
 def read_problems(data_file_path):
